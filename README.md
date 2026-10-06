@@ -14,7 +14,7 @@ upright. Everything is parametric OpenSCAD and prints with no supports.
 | `coin_vault_tray_H39.stl` | 117 × 1 oz rounds in Air-Tite **H39** (Ø44.45 × 5.4) | 233 × 151 × 50 | ~175 g |
 | `coin_vault_lid.stl` | caps any stack | 233 × 151 × 5 | ~95 g |
 | `coin_vault_bookend_Y63.stl` / `_H39.stl` | one per part-full row | | ~10 g / ~4 g |
-| `slab_tray.stl` | 60 × 90 × 60 mm 5 oz slab capsules, portrait | 119 × 128 × 87 | ~115 g |
+| `slab_tray.stl` | 52 × 90 × 60 mm 5 oz slab capsules (7–8 mm thick), portrait | 233 × 151 × 55 | ~160 g |
 | `slab_bookend.stl` | one per part-full row | | ~12 g |
 
 Gram figures are estimates at 15% infill; your slicer has the final word.
@@ -22,7 +22,8 @@ Gram figures are estimates at 15% infill; your slicer has the final word.
 **Coin trays stack.** The 5 oz and 1 oz trays share one footprint and corner-post
 pattern, so they mix freely in a stack under the same lid. Tapered pins on the posts
 locate each tray, and each tray's floor closes the one below it. The slab tray is a
-standalone tray with carry handles. It does not stack.
+standalone tray with carry handles. It does not stack, but it has the same footprint, so all
+three line up on a shelf.
 
 ## Customizing
 
@@ -31,8 +32,8 @@ Keep `patterns.scad` in the same folder, because both files include it.
 
 - `coin_vault.scad`: `capsule` (Y63 / H39), `part` (tray / lid / bookend / preview),
   rows and capsules per row (0 = as many as fit), clearances, end-wall opening pattern.
-- `slab_tray.scad`: `orientation` (portrait / landscape), `slab_t` (set this to your
-  capsule's thickness), rows, slabs per row.
+- `slab_tray.scad`: `footprint` (match the coin trays, or size from rows), `orientation`
+  (portrait / landscape), `slab_t` (capsule thickness, default 8 mm), side and end wall heights.
 
 Export with the Manifold backend (the default in current OpenSCAD).
 

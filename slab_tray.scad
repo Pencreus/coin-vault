@@ -11,22 +11,24 @@ part = "tray"; // [tray, bookend, preview]
 slab_long = 90;  // capsule outside size
 slab_short = 60;
 orientation = "portrait"; // [portrait:Portrait - stands on the 60 edge, 90 tall, landscape:Landscape - stands on the 90 edge, 60 tall]
-slab_t = 3.2;    // 5 oz copper at 90 x 60 = 3.2 mm. Measure yours and set it here
+slab_t = 8.0;    // capsule thickness: typical 5 oz slab capsules are 7-8 mm; 8 fits both
 slab_g = 155.5;  // weight, for the echo only
 
 /* [Layout] */
+footprint = "match coin trays"; // [match coin trays:Match the 1 oz / 5 oz trays (233.1 x 150.7), fit:Sized from rows x per_row]
 rows = 2;        // [1:1:3]
-per_row = 30;    // [5:1:60] 30 x 2 = ~9.3 kg full: same carrying weight as a 5 oz coin tray
-row_clr = 2.0;   // slack along a full row (slab thickness varies a little)
+per_row = 0;     // [0:1:80] 0 = as many as fit (match: 26 at 8 mm)
+row_clr = 2.0;   // minimum slack along a full row
 clr_w = 1.2;     // clearance across the row
 
 /* [Structure] */
 floor_t = 3.0;   // only loaded while carried by the handles: 0.29 mm then (2.4 mm would be 0.52)
-side = 2.0;      // long side walls
-// side_h is ~42% of the standing height: low enough to push a slab up by its side edge
+side_min = 2.0;  // long side walls (match mode: spare width goes into these, making thick rigid sides)
+side_h = 25;     // low enough to push a slab up by its side edge
+end_h = 55;      // end walls only stop the end slab tipping (this tray doesn't stack)
 spine = 1.6;     // divider between rows
 end_t = 2.4;     // end walls, carry the load when lifted by the handles
-handle = 8;      // handle ledge depth, 45 deg gusset underneath
+handle = 7;      // handle ledge depth, 45 deg gusset underneath (7 = the coin trays' post depth)
 ledge_t = 3;
 label_d = 0.6;
 label_h = 12;
@@ -45,11 +47,18 @@ include <patterns.scad>
 eps = 0.01;
 slab_w = orientation == "portrait" ? slab_short : slab_long;   // edge it stands on
 slab_h = orientation == "portrait" ? slab_long : slab_short;   // standing height
-side_h = round(0.42 * slab_h);
 row_w = slab_w + clr_w;
-l_in = per_row * slab_t + row_clr;
-W = rows * row_w + (rows - 1) * spine + 2 * side;
-H = floor_t + slab_h - 6;        // end walls: top 6 mm of the slabs stays exposed to grab
+// the coin trays' outline: 24 x 8.9 + 1.5 inside, 2 mm end walls, 7 mm posts; 2 rows of 72.57 + 1.6 + 2 x 2
+FOOT_X = 24 * 8.9 + 1.5 + 2 * 2.0 + 2 * 7;
+FOOT_Y = 2 * (71.37 + 1.2) + 1.6 + 2 * 2.0;
+match = footprint == "match coin trays";
+l_in = match ? FOOT_X - 2 * end_t - 2 * handle : per_row * slab_t + row_clr;
+n_per_row = per_row > 0 ? per_row : floor((l_in - row_clr) / slab_t + 1e-6);
+W = match ? FOOT_Y : rows * row_w + (rows - 1) * spine + 2 * side_min;
+side = (W - rows * row_w - (rows - 1) * spine) / 2;
+H = end_h;
+assert(side >= side_min - 1e-6, "rows don't fit the coin-tray footprint");
+assert(n_per_row * slab_t + row_clr <= l_in + 1e-6, "too many slabs for the row length");
 X0 = 0;
 X1 = l_in + 2 * end_t;
 
@@ -122,12 +131,13 @@ module slabs(n)
         translate([X0 + end_t + 0.3 + i * slab_t, row_yc(r) - slab_w / 2, floor_t + 0.05])
             cube([slab_t - 0.1, slab_w, slab_h]);
 
-echo(str("slab tray: ", rows, " x ", per_row, " = ", rows * per_row, " slabs, ",
-         rows * per_row * slab_g / 1000, " kg full, tray ", X1 - X0 + 2 * handle, " x ", W, " x ", H));
+echo(str("slab tray: ", rows, " x ", n_per_row, " = ", rows * n_per_row, " slabs, ~",
+         rows * n_per_row * (slab_g + 25) / 1000, " kg full (incl. capsules), tray ", X1 - X0 + 2 * handle, " x ", W,
+         " x ", H, ", side walls ", side_h, " tall x ", side, " thick"));
 
 if (part == "tray") tray();
 else if (part == "bookend") bookend();
 else {
     color("Peru") tray();
-    color("Chocolate") slabs(per_row);
+    color("Chocolate") slabs(n_per_row);
 }
