@@ -22,8 +22,9 @@ Gram figures are estimates at 15% infill; your slicer has the final word.
 **Coin trays stack.** The 5 oz and 1 oz trays share one footprint and corner-post
 pattern, so they mix freely in a stack under the same lid. Tapered pins on the posts
 locate each tray, and each tray's floor closes the one below it. The slab tray is a
-standalone tray with carry handles. It does not stack, but it has the same footprint, so all
-three line up on a shelf.
+tray with carry handles and the same footprint. Sockets in its four corner feet take the coin
+trays' pins, so it can sit on top of a 1 oz or 5 oz tray in place of the lid. Nothing stacks on
+top of it.
 
 ## Customizing
 

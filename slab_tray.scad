@@ -37,6 +37,15 @@ end_pattern = "hex"; // [hex, diamond, teardrop, xbrace, solid] end walls (see p
 web = 3.0;       // minimum material between openings
 cell = 16;       // nominal opening size
 
+/* [Stacking] */
+sits_on_coin_trays = true; // corner feet with sockets so this tray sits on a 1 oz / 5 oz tray (match footprint only)
+foot_post = 9;   // the coin trays' corner post (square)
+foot_h = 6.5;    // socket 3.5 deep + 3 mm roof
+pin_h = 3;       // the coin trays' tapered pins...
+pin_r0 = 2.6;
+pin_r1 = 1.8;
+sock_clr = 0.25; // ...and the same socket clearance the lid uses
+
 /* [Bookend] */
 book_t = 2.4;
 foot_t = 1.0;
@@ -84,10 +93,17 @@ module ledge(xw, sgn) {
     }
 }
 
+// coin-tray post positions: posts stand handle (=7) proud of each end wall, flush with the long sides
+feet = [for (x = [X0 - handle, X1 + handle - foot_post]) for (y = [0, W - foot_post]) [x, y]];
+module socket()
+    translate([0, 0, -eps]) cylinder(h = pin_h + 0.5 + eps, r1 = pin_r0 + sock_clr, r2 = pin_r1 + sock_clr - 0.1, $fn = 64);
+
 module tray() {
     spines = [for (r = [1:1:rows - 1]) row_y0(r) - spine];
+    stack = sits_on_coin_trays && match;
     difference() {
         union() {
+            if (stack) for (f = feet) box([f[0], f[1], 0], [f[0] + foot_post, f[1] + foot_post, foot_h]);
             box([X0, 0, 0], [X1, W, floor_t]);
             box([X0, 0, 0], [X1, side, side_h]);
             box([X0, W - side, 0], [X1, W, side_h]);
@@ -101,6 +117,7 @@ module tray() {
             yz_extrude(X0 - 1, X0 + end_t + 1) end_holes();
             yz_extrude(X1 - end_t - 1, X1 + 1) end_holes();
         }
+        if (stack) for (f = feet) translate([f[0] + foot_post / 2, f[1] + foot_post / 2, 0]) socket();
         box([X0 - 1, side + 4, label_z0], [X0 + label_d, W - side - 4, label_z1]);
         box([X1 - label_d, side + 4, label_z0], [X1 + 1, W - side - 4, label_z1]);
     }
