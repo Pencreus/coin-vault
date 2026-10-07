@@ -1,6 +1,6 @@
 """Conservative sag check for a stacked Coin Vault tray (supported only at its end walls).
 
-Usage: sag_check.py [Y63|H39] ['{"floor_t": 2.4, ...}']
+Usage: sag_check.py [Y63|H39|NICKEL|HALF] ['{"floor_t": 2.4, ...}']
 
 Assumptions (all chosen to over-predict sag):
   - load: every slot full, coin + capsule weight, uniform along the rows
@@ -18,6 +18,8 @@ PRESETS = {
     #       cap_d  cap_t  side_h cradle_h  coin+capsule g
     "Y63": (71.37, 8.9,   30.0,  8.0,      155.5 + 25),   # 5 oz copper
     "H39": (44.45, 5.4,   19.0,  5.0,      31.1 + 6),     # 1 oz copper
+    "NICKEL": (25.5, 6.0,   11.0,  4.0,      5.0 + 3),      # Buffalo nickel in a generic capsule
+    "HALF":   (35.3, 6.0,   15.0,  5.0,      12.5 + 4),     # half dollar in a generic capsule
 }
 cap_d, cap_t, side_h, cradle_h, coin_g = PRESETS[CAP]
 # shared footprint: every capsule type uses the 5 oz tray's outline so trays mix in a stack

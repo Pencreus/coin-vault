@@ -12,18 +12,22 @@ upright. Everything is parametric OpenSCAD and prints with no supports.
 |---|---|---|---|
 | `coin_vault_tray_Y63.stl` | 48 × 5 oz rounds in Air-Tite **Y63** (Ø71.37 × 8.9) | 233 × 151 × 77 | ~210 g |
 | `coin_vault_tray_H39.stl` | 117 × 1 oz rounds in Air-Tite **H39** (Ø44.45 × 5.4) | 233 × 151 × 50 | ~175 g |
+| `coin_vault_tray_NICKEL.stl` | 175 × Buffalo nickels in Ø25.5 capsules (5 rows) | 233 × 151 × 31.5 | ~155 g |
+| `coin_vault_tray_HALF.stl` | 105 × half dollars in Ø35.3 capsules (3 rows) | 233 × 151 × 41 | ~165 g |
+| `coin_vault_tray_MIXED.stl` | 35 nickels (front row) + 105 half dollars (3 rows) | 233 × 151 × 41 | ~170 g |
 | `coin_vault_lid.stl` | caps any stack | 233 × 151 × 5 | ~95 g |
-| `coin_vault_bookend_Y63.stl` / `_H39.stl` | one per part-full row | | ~10 g / ~4 g |
+| `coin_vault_bookend_Y63.stl` / `_H39.stl` / `_NICKEL.stl` / `_HALF.stl` | one per part-full row | | 1–10 g |
 | `slab_tray.stl` | 52 × 90 × 60 mm 5 oz slab capsules (7–8 mm thick), portrait | 233 × 151 × 55 | ~160 g |
 | `slab_bookend.stl` | one per part-full row | | ~12 g |
 
-Gram figures are estimates at 15% infill; your slicer has the final word.
+Gram figures are estimates at 15% infill; your slicer has the final word. Nickel and half-dollar
+counts assume 6 mm capsules; capsules stand face to face, so thinner ones simply fit more per row.
 
-**Coin trays stack.** The 5 oz and 1 oz trays share one footprint and corner-post
-pattern, so they mix freely in a stack under the same lid. Tapered pins on the posts
+**Coin trays stack.** The 5 oz, 1 oz, nickel, half-dollar and mixed trays share one footprint
+and corner-post pattern, so they mix freely in a stack under the same lid. Tapered pins on the posts
 locate each tray, and each tray's floor closes the one below it. The slab tray is a
 tray with carry handles and the same footprint. Sockets in its four corner feet take the coin
-trays' pins, so it can sit on top of a 1 oz or 5 oz tray in place of the lid. Nothing stacks on
+trays' pins, so it can sit on top of any coin tray in place of the lid. Nothing stacks on
 top of it.
 
 ## Customizing
@@ -31,7 +35,7 @@ top of it.
 Open `coin_vault.scad` or `slab_tray.scad` in OpenSCAD and use **Window → Customizer**.
 Keep `patterns.scad` in the same folder, because both files include it.
 
-- `coin_vault.scad`: `capsule` (Y63 / H39), `part` (tray / lid / bookend / preview),
+- `coin_vault.scad`: `capsule` (Y63 / H39 / NICKEL / HALF / MIXED), `part` (tray / lid / bookend / preview),
   rows and capsules per row (0 = as many as fit), clearances, end-wall opening pattern.
 - `slab_tray.scad`: `footprint` (match the coin trays, or size from rows), `orientation`
   (portrait / landscape), `slab_t` (capsule thickness, default 8 mm), side and end wall heights.
@@ -48,6 +52,7 @@ modulus at E/3, sparse infill counted at 5% stiffness.
 ```
 python sag_check.py Y63    # 5 oz: 0.96 mm worst case vs 1.85 mm clearance
 python sag_check.py H39    # 1 oz: 0.73 mm worst case
+python sag_check.py NICKEL # 0.66 mm;  HALF: 0.49 mm
 ```
 
 These results set the design rules. Don't relax them to save filament:

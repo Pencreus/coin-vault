@@ -10,7 +10,7 @@
 part = "tray"; // [tray, lid, bookend, preview_stack]
 
 /* [Capsule] */
-capsule = "Y63"; // [Y63:Y63 - 5 oz rounds, H39:H39 - 1 oz rounds]
+capsule = "Y63"; // [Y63:Y63 - 5 oz rounds, H39:H39 - 1 oz rounds, NICKEL:Nickel capsules (25.5 mm), HALF:Half dollar capsules (35.3 mm), MIXED:Mixed - 1 row of nickels + 3 rows of halves]
 
 /* [Layout] */
 footprint = "shared"; // [shared:Shared - stacks with every other tray, custom:Custom - sized from rows x per_row]
@@ -60,8 +60,15 @@ eps = 0.01;
 
 // Capsule presets. Air-Tite specs: Y63 = 71.37 OD x 8.9 closed; H39 = 44.45 OD x 5.4 closed.
 //              cap_d  cap_t  side_h  cradle_h
-PRESETS = [["Y63", 71.37, 8.9,  30,     8],
-           ["H39", 44.45, 5.4,  19,     5]];
+PRESETS = [["Y63",    71.37, 8.9,  30,     8],
+           ["H39",    44.45, 5.4,  19,     5],
+           // Dad's generic capsules, measured: OD only. cap_t (6 mm) only sets the count and
+           // preview: capsules stand face to face, so thinner ones just fit more per row.
+           ["NICKEL", 25.5,  6.0,  11,     4],
+           ["HALF",   35.3,  6.0,  15,     5],
+           // MIXED: a row of nickels + 3 rows of halves (lanes below). Values are the halves'
+           // (the tallest capsule sets the tray height and end walls).
+           ["MIXED",  35.3,  6.0,  15,     5]];
 P = PRESETS[search([capsule], PRESETS)[0]];
 cap_d = P[1];
 cap_t = P[2];
@@ -84,6 +91,23 @@ l_in = shared ? FOOT_L_IN : n_per_row * cap_t + row_clr;
 W = shared ? FOOT_W : n_rows * row_w + (n_rows - 1) * spine + 2 * side;
 H = floor_t + cap_d + top_clr;
 assert(!shared || (n_rows <= fit_rows && n_per_row <= fit_per_row), "too many capsules for the shared footprint");
+
+// MIXED lanes, front to back: [lane's capsule, [[cap_d, cap_t, cradle_h, from, to]]] (from/to = share of the row)
+// Nickels at the front edge, so their low rims can be pushed up from the side.
+mixed = capsule == "MIXED";
+MIX = [[25.5, [[25.5, 6.0, 4, 0, 1]]],
+       [35.3, [[35.3, 6.0, 5, 0, 1]]],
+       [35.3, [[35.3, 6.0, 5, 0, 1]]],
+       [35.3, [[35.3, 6.0, 5, 0, 1]]]];
+function lsum(v, i = 0) = i >= len(v) ? 0 : v[i] + lsum(v, i + 1);
+mix_spare = (FOOT_W - 2 * side - (len(MIX) - 1) * spine - lsum([for (l = MIX) l[0] + clr_d])) / len(MIX);
+assert(!mixed || mix_spare >= 0, "MIXED lanes don't fit the shared footprint");
+function lane_w(i) = MIX[i][0] + clr_d + mix_spare;
+function lane_y0(i) = side + (i == 0 ? 0 : lane_y0(i - 1) - side + lane_w(i - 1) + spine);
+divider = 2.0;   // fixed wall between the two halves of the split row
+function seg_x0(f) = X0 + end_t + f * l_in + (f > 0 ? divider / 2 : 0);
+function seg_x1(f) = X0 + end_t + f * l_in - (f < 1 ? divider / 2 : 0);
+function seg_n(sg) = floor((seg_x1(sg[4]) - seg_x0(sg[3]) - 1.0) / sg[1] + 1e-6);
 
 // bookend scales with the capsule
 foot_l = max(24, 4.5 * cap_t);   // ~4.5 capsules stand on the foot and hold it down
@@ -118,10 +142,11 @@ lat_z1 = side_h - chord;
 // End walls: openings between the posts, from the cradle up to a solid top band
 // that carries the label strip and the handle ledge.
 label_z1 = H - ledge_t - out_ - 3;
-label_z0 = label_z1 - label_h;
+label_z0 = label_z1 - min(label_h, label_z1 - (floor_t + cradle_h + 1));   // shorter trays: the strip shrinks to fit
 end_v0 = floor_t + cradle_h + strut;
 end_v1 = label_z0 - strut;
-module end_holes() wall_pattern_2d(end_pattern, post + web, W - post - web, end_v0, end_v1, web, cell);
+end_open = end_v1 - end_v0 >= 8;                      // too short a band for openings: leave the wall solid
+module end_holes() if (end_open) wall_pattern_2d(end_pattern, post + web, W - post - web, end_v0, end_v1, web, cell);
 
 module lattice_cut(y0, y1)
     if (wall_pattern != "solid") xz_extrude(y0 - 1, y1 + 1) wall_pattern_2d(wall_pattern, lat_x0, lat_x1, lat_z0, lat_z1, web, cell);
@@ -147,12 +172,30 @@ module ledge(xw, sgn) {
     }
 }
 
+module seg_cradle(y0, w, d, ch, x0, x1)
+    yz_extrude(x0 - eps, x1 + eps)
+        difference() {
+            translate([y0 - eps, 0]) square([w + 2 * eps, floor_t + ch]);
+            translate([y0 + w / 2, floor_t + d / 2 + cradle_clr]) circle(d / 2 + cradle_clr, $fn = 192);
+        }
+
+module mixed_floor() {
+    for (i = [0:len(MIX) - 1], sg = MIX[i][1])
+        seg_cradle(lane_y0(i), lane_w(i), sg[0], sg[2], seg_x0(sg[3]), seg_x1(sg[4]));
+    for (i = [0:len(MIX) - 1], sg = MIX[i][1]) if (sg[4] < 1) {     // divider where a row splits
+        xm = X0 + end_t + sg[4] * l_in;
+        box([xm - divider / 2, lane_y0(i) - eps, 0], [xm + divider / 2, lane_y0(i) + lane_w(i) + eps, side_h]);
+    }
+}
+
 module tray() {
-    spines = [for (r = [1:1:n_rows - 1]) row_y0(r) - spine];
+    spines = mixed ? [for (i = [1:len(MIX) - 1]) lane_y0(i) - spine]
+                   : [for (r = [1:1:n_rows - 1]) row_y0(r) - spine];
     difference() {
         union() {
             box([X0, 0, 0], [X1, W, floor_t]);
-            for (r = [0:n_rows - 1]) cradle(row_yc(r));
+            if (mixed) mixed_floor();
+            else for (r = [0:n_rows - 1]) cradle(row_yc(r));
             box([X0, 0, 0], [X1, side, side_h]);
             box([X0, W - side, 0], [X1, W, side_h]);
             for (y = spines) box([X0, y, 0], [X1, y + spine, side_h]);
@@ -210,19 +253,27 @@ module bookend_in_place() {
             }
         }
         // finger hole to slide it along
-        yz_extrude(-book_t - 1, 1) translate([0, floor_t + 0.42 * cap_d]) circle(max(6.5, 0.126 * cap_d));
+        yz_extrude(-book_t - 1, 1) translate([0, floor_t + 0.42 * cap_d]) circle(cap_d >= 40 ? max(6.5, 0.126 * cap_d) : 0.2 * plate_h);
     }
 }
 
 // Print orientation: plate flat on the bed, foot standing up.
 module bookend() multmatrix([[0, 1, 0, 0], [0, 0, 1, -floor_t], [1, 0, 0, book_t]]) bookend_in_place();
 
+module mixed_capsules(fill = 1)
+    for (i = [0:len(MIX) - 1], sg = MIX[i][1], k = [0:max(0, round(seg_n(sg) * fill)) - 1])
+        translate([seg_x0(sg[3]) + 0.5 + k * sg[1], lane_y0(i) + lane_w(i) / 2, floor_t + sg[0] / 2 + 0.05])
+            multmatrix([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]]) cylinder(h = sg[1] - 0.1, r = sg[0] / 2);
+
 module capsules(n)
-    for (r = [0:n_rows - 1], i = [0:n - 1])
+    if (mixed) mixed_capsules(n / n_per_row);
+    else for (r = [0:n_rows - 1], i = [0:n - 1])
         translate([X0 + end_t + i * cap_t + 0.05, row_yc(r), floor_t + R + 0.05])
             multmatrix([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]]) cylinder(h = cap_t - 0.1, r = R);
 
-echo(str(capsule, ": ", n_rows, " rows x ", n_per_row, " = ", n_rows * n_per_row, " capsules, tray ", X1 - X0 + 2 * out_, " x ", W, " x ", H));
+if (mixed) echo(str("MIXED: ", [for (i = [0:len(MIX) - 1], sg = MIX[i][1]) str(sg[0], " mm x ", seg_n(sg))],
+                    " | lanes ", [for (i = [0:len(MIX) - 1]) lane_w(i)], " | tray ", X1 - X0 + 2 * out_, " x ", W, " x ", H));
+else echo(str(capsule, ": ", n_rows, " rows x ", n_per_row, " = ", n_rows * n_per_row, " capsules, tray ", X1 - X0 + 2 * out_, " x ", W, " x ", H));
 if (part == "tray") tray();
 else if (part == "lid") lid();
 else if (part == "bookend") bookend();
@@ -233,7 +284,7 @@ else {
         color("LightSteelBlue", 0.6) capsules(k == 2 ? round(n_per_row * 0.6) : n_per_row);
     }
     // a part-full top tray, held up by its bookends
-    for (r = [0:n_rows - 1])
+    if (!mixed) for (r = [0:n_rows - 1])
         color("DarkSlateGray") translate([X0 + end_t + round(n_per_row * 0.6) * cap_t + 0.3, row_yc(r), 2 * H])
             mirror([1, 0, 0]) bookend_in_place();
     color("DimGray") translate([0, 0, 3 * H]) lid();
