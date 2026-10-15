@@ -10,7 +10,7 @@
 part = "tray"; // [tray, lid, bookend, preview_stack]
 
 /* [Capsule] */
-capsule = "Y63"; // [Y63:Y63 - 5 oz rounds, H39:H39 - 1 oz rounds, NICKEL:Nickel capsules (25.5 mm), HALF:Half dollar capsules (35.3 mm), MIXED:Mixed - 1 row of nickels + 3 rows of halves]
+capsule = "Y63"; // [Y63:Y63 - 5 oz rounds, H39:H39 - 1 oz rounds, NICKEL:Nickel capsules (25.5 mm), HALF:Half dollar capsules (35.3 mm), MIXED:Mixed - 1 row of nickels + 3 rows of halves, RECT:Rectangular capsules 35.7 x 57.5 (portrait)]
 
 /* [Layout] */
 footprint = "shared"; // [shared:Shared - stacks with every other tray, custom:Custom - sized from rows x per_row]
@@ -68,25 +68,30 @@ PRESETS = [["Y63",    71.37, 8.9,  30,     8],
            ["HALF",   35.3,  6.0,  15,     5],
            // MIXED: a row of nickels + 3 rows of halves (lanes below). Values are the halves'
            // (the tallest capsule sets the tray height and end walls).
-           ["MIXED",  35.3,  6.0,  15,     5]];
+           ["MIXED",  35.3,  6.0,  15,     5],
+           // Rectangular capsules, measured 35.7 x 57.5, standing in PORTRAIT (57.5 tall): cap_d is
+           // the standing height, the 6th value is the width. Flat floor with a locating channel.
+           ["RECT",   57.5,  7.0,  24,     3,  35.7]];
 P = PRESETS[search([capsule], PRESETS)[0]];
 cap_d = P[1];
 cap_t = P[2];
 side_h = P[3];   // ~42% of the capsule: low enough to grip a rim from the side
 cradle_h = P[4];
+rect = len(P) > 5;              // rectangular capsule: channel floor instead of a curved cradle
+cap_w = rect ? P[5] : cap_d;    // width across the row
 
 // The shared footprint is the 5 oz tray's: 2 rows x 24 Y63 capsules.
 FOOT_L_IN = 24 * 8.9 + 1.5;
 FOOT_W = 2 * (71.37 + 1.2) + 1.6 + 2 * 2.0;
 R = cap_d / 2;
 Rc = R + cradle_clr;
-fit_rows = floor((FOOT_W - 2 * side + spine) / (cap_d + clr_d + spine) + 1e-6);
+fit_rows = floor((FOOT_W - 2 * side + spine) / (cap_w + clr_d + spine) + 1e-6);
 fit_per_row = floor((FOOT_L_IN - row_clr) / cap_t + 1e-6);
 n_rows = rows > 0 ? rows : fit_rows;
 n_per_row = per_row > 0 ? per_row : fit_per_row;
 shared = footprint == "shared";
 // shared: spare width goes into row clearance (the cradle still centres each capsule)
-row_w = shared ? (FOOT_W - 2 * side - (n_rows - 1) * spine) / n_rows : cap_d + clr_d;
+row_w = shared ? (FOOT_W - 2 * side - (n_rows - 1) * spine) / n_rows : cap_w + clr_d;
 l_in = shared ? FOOT_L_IN : n_per_row * cap_t + row_clr;
 W = shared ? FOOT_W : n_rows * row_w + (n_rows - 1) * spine + 2 * side;
 H = floor_t + cap_d + top_clr;
@@ -157,7 +162,8 @@ module cradle(yc)
     yz_extrude(X0 + end_t - eps, X1 - end_t + eps)
         difference() {
             translate([yc - row_w / 2 - eps, 0]) square([row_w + 2 * eps, floor_t + cradle_h]);
-            translate([yc, floor_t + Rc]) circle(Rc, $fn = 192);
+            if (rect) translate([yc - (cap_w + clr_d) / 2, floor_t]) square([cap_w + clr_d, cradle_h + 1]);
+            else translate([yc, floor_t + Rc]) circle(Rc, $fn = 192);
         }
 
 module ledge(xw, sgn) {
@@ -236,7 +242,8 @@ module lid() {
 // Sliding bookend, modelled in use position (row centre at y = 0, plate face at
 // x = 0, capsules on +X standing on the foot). Their weight pins the foot down.
 module bookend_in_place() {
-    difference() {
+    if (rect) rect_bookend_in_place();
+    else difference() {
         union() {
             // plate: the capsule silhouette, cut off at plate_h
             yz_extrude(-book_t, 0) intersection() {
@@ -257,6 +264,18 @@ module bookend_in_place() {
     }
 }
 
+// Rectangular capsules: flat plate + flat foot, both sized to sit in the row's locating channel.
+module rect_bookend_in_place() {
+    cw = cap_w + clr_d;
+    difference() {
+        union() {
+            box([-book_t, -cw / 2 + 0.4, floor_t], [0, cw / 2 - 0.4, floor_t + plate_h]);
+            box([-book_t, -cw / 2 + 2, floor_t], [foot_l, cw / 2 - 2, floor_t + foot_t]);
+        }
+        yz_extrude(-book_t - 1, 1) translate([0, floor_t + 0.42 * cap_d]) circle(max(6.5, 0.126 * cap_d));
+    }
+}
+
 // Print orientation: plate flat on the bed, foot standing up.
 module bookend() multmatrix([[0, 1, 0, 0], [0, 0, 1, -floor_t], [1, 0, 0, book_t]]) bookend_in_place();
 
@@ -267,6 +286,8 @@ module mixed_capsules(fill = 1)
 
 module capsules(n)
     if (mixed) mixed_capsules(n / n_per_row);
+    else if (rect) for (r = [0:n_rows - 1], i = [0:n - 1])
+        translate([X0 + end_t + i * cap_t + 0.05, row_yc(r) - cap_w / 2, floor_t + 0.05]) cube([cap_t - 0.1, cap_w, cap_d]);
     else for (r = [0:n_rows - 1], i = [0:n - 1])
         translate([X0 + end_t + i * cap_t + 0.05, row_yc(r), floor_t + R + 0.05])
             multmatrix([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]]) cylinder(h = cap_t - 0.1, r = R);
