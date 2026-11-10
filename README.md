@@ -10,20 +10,34 @@ upright. Everything is parametric OpenSCAD and prints with no supports.
 
 | File | Holds | Size (mm) | PLA |
 |---|---|---|---|
-| `coin_vault_tray_Y63.stl` | 48 × 5 oz rounds in Air-Tite **Y63** (Ø71.37 × 8.9) | 233 × 151 × 77 | ~210 g |
-| `coin_vault_tray_H39.stl` | 117 × 1 oz rounds in Air-Tite **H39** (Ø44.45 × 5.4) | 233 × 151 × 50 | ~175 g |
-| `coin_vault_tray_NICKEL.stl` | 175 × Buffalo nickels in Ø25.5 capsules (5 rows) | 233 × 151 × 31.5 | ~155 g |
-| `coin_vault_tray_HALF.stl` | 105 × half dollars in Ø35.3 capsules (3 rows) | 233 × 151 × 41 | ~165 g |
-| `coin_vault_tray_MIXED.stl` | 35 nickels (front row) + 105 half dollars (3 rows) | 233 × 151 × 41 | ~170 g |
-| `coin_vault_tray_RECT.stl` | 90 × rectangular 35.7 × 57.5 capsules, portrait (3 rows) | 233 × 151 × 63.5 | ~190 g |
+| `coin_vault_tray_Y63.stl` | 48 × 5 oz rounds in Air-Tite **Y63** (Ø71.37 × 8.9) | 233 × 151 × 78 | ~210 g |
+| `coin_vault_tray_H39.stl` | 117 × 1 oz rounds in Air-Tite **H39** (Ø44.45 × 5.4) | 233 × 151 × 51 | ~175 g |
+| `coin_vault_tray_NICKEL.stl` | 175 × Buffalo nickels in Ø25.5 capsules (5 rows) | 233 × 151 × 32.5 | ~155 g |
+| `coin_vault_tray_HALF.stl` | 105 × half dollars in Ø35.3 capsules (3 rows) | 233 × 151 × 42 | ~165 g |
+| `coin_vault_tray_MIXED.stl` | 35 nickels (front row) + 105 half dollars (3 rows) | 233 × 151 × 42 | ~170 g |
+| `coin_vault_tray_RECT.stl` | 90 × rectangular 35.7 × 57.5 capsules, portrait (3 rows) | 233 × 151 × 64.5 | ~190 g |
+| `coin_vault_tray_SLAB.stl` | 52 × 5 oz slab capsules 90 × 60 × 8, portrait, or 82 × 1 oz slabs 93.3 × 62.5 × 5 (thickness only changes the count) | 233 × 151 × 101 | ~320 g |
 | `coin_vault_lid.stl` | caps any stack | 233 × 151 × 5 | ~95 g |
-| `coin_vault_bookend_Y63.stl` / `_H39.stl` / `_NICKEL.stl` / `_HALF.stl` / `_RECT.stl` | one per part-full row | | 1–10 g |
+| `coin_vault_bookend_Y63.stl` / `_H39.stl` / `_NICKEL.stl` / `_HALF.stl` / `_RECT.stl` / `_SLAB.stl` | one per part-full row | | 1–10 g |
 | `slab_tray.stl` | 52 × 90 × 60 mm 5 oz slab capsules (7–8 mm thick), portrait | 233 × 151 × 55 | ~160 g |
 | `slab_bookend.stl` | one per part-full row | | ~12 g |
 
 Gram figures are estimates at 15% infill; your slicer has the final word. Nickel and half-dollar
 counts assume 6 mm capsules and rectangular ones 7 mm; capsules stand face to face, so thinner ones
 simply fit more per row.
+
+**Bookend track (all trays).** Each row has a stepped groove in the floor (12 mm x 1 mm, then 6 mm x 1 mm) and every bookend
+has the matching two-step tongue (0.25 mm clearance). The bookend still slides, but it can't twist, shift sideways or tilt out
+when a part-full row leans on it. The floor is 4 mm (5 mm on the slab tray) so 2 mm of it can be cut away.
+
+**Sturdier outer walls (same footprint).** The long outer walls are 4 mm instead of 2: they grow inward as far as the capsules
+allow (0.6 mm from the capsule at the wall top), so nothing changes on the outside and trays still stack with older prints.
+The end walls are 5 mm instead of 2: they grow outward into the free space between the posts, up to the handle ledge.
+`sag_check.py` was updated for both (worst-case sag: 5 oz 1.1 mm, slab 0.95 mm).
+
+**Slab tray = `SLAB` preset** of `coin_vault.scad`: stackable, 101 mm tall, rows sized for 93.3 x 62.5 and also taking
+90 x 60 x 8 slabs (3.7 mm side play in the channel). `slab_tray.scad` (the low carry-handle tray that nothing stacks on) is kept but
+doesn't have the track or thicker walls.
 
 **Coin trays stack.** The 5 oz, 1 oz, nickel, half-dollar, mixed and rectangular trays share one footprint
 and corner-post pattern, so they mix freely in a stack under the same lid. Tapered pins on the posts
