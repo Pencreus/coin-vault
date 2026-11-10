@@ -84,7 +84,7 @@ PRESETS = [["Y63",    71.37, 8.9,  30,     8],
            // the standing height, the 6th value is the width. Flat floor with a locating channel.
            ["RECT",   57.5,  7.0,  24,     3,  35.7],
            // Slab capsules, PORTRAIT: sized for the biggest (93.3 x 62.5 x 5 mm, 1 oz); the 90 x 60 x 8 mm 5 oz slab also fits
-           // (3.7 mm side play in its channel). cap_t = 8 only sets the count (5 mm slabs: 41 a row, 8 mm: 26). The tray is
+           // (3.7 mm side play in its channel). cap_t = 8 only sets the count (5 mm slabs: 42 a row, 8 mm: 26). The tray is
            // 101 mm tall so it stacks like the rest, with a 5 mm floor (sag_check.py SLAB: 0.95 mm worst case, 1.75 mm at 3 mm).
            ["SLAB",   93.3,  8.0,  30,     3,  62.5]];
 floor_t = capsule == "SLAB" ? max(floor_base, 5.0) : floor_base;

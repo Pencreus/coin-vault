@@ -4,7 +4,9 @@
 edge, face to face, in a curved cradle, and a sliding bookend keeps a part-full row
 upright. Everything is parametric OpenSCAD and prints with no supports.
 
-![Mixed stack: one 5 oz tray, two 1 oz trays, one lid](out/preview_stack_mixed.png)
+![Stack: 5 oz, 1 oz and half-dollar trays under one lid](out/preview_stack_mixed.png)
+
+![Bookend track, 4 mm long walls, 5 mm end walls](out/preview_bookend_track_and_walls.png)
 
 ## Parts
 
@@ -16,11 +18,11 @@ upright. Everything is parametric OpenSCAD and prints with no supports.
 | `coin_vault_tray_HALF.stl` | 105 × half dollars in Ø35.3 capsules (3 rows) | 233 × 151 × 42 | ~165 g |
 | `coin_vault_tray_MIXED.stl` | 35 nickels (front row) + 105 half dollars (3 rows) | 233 × 151 × 42 | ~170 g |
 | `coin_vault_tray_RECT.stl` | 90 × rectangular 35.7 × 57.5 capsules, portrait (3 rows) | 233 × 151 × 64.5 | ~190 g |
-| `coin_vault_tray_SLAB.stl` | 52 × 5 oz slab capsules 90 × 60 × 8, portrait, or 82 × 1 oz slabs 93.3 × 62.5 × 5 (thickness only changes the count) | 233 × 151 × 101 | ~320 g |
+| `coin_vault_tray_SLAB.stl` | 52 × 5 oz slab capsules 90 × 60 × 8, portrait, or 84 × 1 oz slabs 93.3 × 62.5 × 5 (thickness only changes the count) | 233 × 151 × 101 | ~320 g |
 | `coin_vault_lid.stl` | caps any stack | 233 × 151 × 5 | ~95 g |
 | `coin_vault_bookend_Y63.stl` / `_H39.stl` / `_NICKEL.stl` / `_HALF.stl` / `_RECT.stl` / `_SLAB.stl` | one per part-full row | | 1–10 g |
-| `slab_tray.stl` | 52 × 90 × 60 mm 5 oz slab capsules (7–8 mm thick), portrait | 233 × 151 × 55 | ~160 g |
-| `slab_bookend.stl` | one per part-full row | | ~12 g |
+| `slab_tray.stl` | *legacy*: the old low carry-handle slab tray (nothing stacks on it; no bookend track, thin walls). Superseded by `coin_vault_tray_SLAB.stl` | 233 × 151 × 55 | ~160 g |
+| `slab_bookend.stl` | *legacy*: bookend for the old slab tray | | ~12 g |
 
 Gram figures are estimates at 15% infill; your slicer has the final word. Nickel and half-dollar
 counts assume 6 mm capsules and rectangular ones 7 mm; capsules stand face to face, so thinner ones
@@ -98,3 +100,9 @@ These results set the design rules. Don't relax them to save filament:
 - `sag_check.py`: conservative stiffness check (numpy)
 - `render.py`: tiny z-buffer STL preview renderer (numpy, trimesh, pillow)
 - `out/`: exported STLs and preview images
+
+## Release files (not part of the OpenSCAD source)
+
+- `makerworld/make_3mf.py`: Bambu Studio project (9 plates, A1, PLA, 15% infill) for MakerWorld.
+- `package/build_cults_package.py`: STL + 3MF per part and one zip per tray for the Cults3D / download package.
+- `package/render_previews.py`: the preview images in `out/` and the listing.
